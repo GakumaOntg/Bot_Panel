@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Admin Dashboard</h1>
+            <a href="/logout" class="btn btn-secondary">Logout</a>
+        </div>
+        <hr>
+        <p>This panel controls the single 24/7 Background Worker. To run a bot, select it from the list and click "Deploy". This will update the `BOT_TO_RUN` environment variable and trigger a new deployment on Render.</p>
+        <div class="alert alert-info">
+            <strong>Current Bot Status:</strong> <span class="badge bg-primary">{{ status }}</span>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Available Bots in Repository</h5>
+                <ul class="list-group">
+                    {% for bot in bot_folders %}
+                    <li class="list-group-item">{{ bot }}</li>
+                    {% endfor %}
+                </ul>
+                <p class="mt-3">To switch bots, go to your <strong>Background Worker's Environment settings</strong> on Render, change the value of `BOT_TO_RUN` to one of the names above, and save changes to trigger a redeploy.</p>
+            </div>
+        </div>
+        <h4 class="mt-4">Live Logs</h4>
+        <pre class="bg-dark text-white p-3 rounded" style="height: 400px; overflow-y: scroll;"><code>{{ logs }}</code></pre>
+    </div>
+</body>
+</html>
