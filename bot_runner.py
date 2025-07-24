@@ -4,18 +4,14 @@ import subprocess
 import time
 
 def log(message):
-    """Prints a message with a timestamp."""
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {message}", flush=True)
 
 if __name__ == "__main__":
-    log("Bot Runner Initializing on Free Tier...")
-
-    # This variable will be set in the Render Dashboard by the Admin
+    log("Bot Runner Initializing...")
     bot_to_run = os.getenv("BOT_TO_RUN")
 
     if not bot_to_run:
         log("FATAL: 'BOT_TO_RUN' environment variable is not set. Worker will not start.")
-        log("Please set it in the Render dashboard to the name of a folder in /bots (e.g., 'client_a').")
         sys.exit(1)
 
     log(f"Target bot selected: {bot_to_run}")
@@ -28,7 +24,6 @@ if __name__ == "__main__":
         log(f"FATAL: Bot folder '{bot_folder}' or script '{bot_script_path}' not found.")
         sys.exit(1)
 
-    # Step 1: Install client's dependencies
     if os.path.exists(requirements_path):
         log(f"Installing dependencies from {requirements_path}...")
         try:
@@ -41,9 +36,8 @@ if __name__ == "__main__":
             log(f"--- PIP INSTALL FAILED ---\n{e.stderr}\n--------------------------")
             sys.exit(1)
 
-    # Step 2: Run the client's bot script
-    log(f"Starting bot script: {bot_script_path}")
-    os.chdir(bot_folder) # Change directory so the bot can find its database file
+    log(f"Changing directory to {bot_folder} and starting bot...")
+    os.chdir(bot_folder)
     subprocess.run([sys.executable, "bot.py"])
 
     log("Bot Runner Finished.")
