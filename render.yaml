@@ -1,5 +1,6 @@
 services:
-  # 1. The Dashboard (Free Web Service)
+  # Service 1: The Dashboard (uses your Free Web Service)
+  # This is just for viewing status. It can sleep.
   - type: web
     name: bot-dashboard
     env: python
@@ -8,14 +9,15 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
-      # We will set RENDER_API_KEY and BOT_WORKER_SERVICE_ID manually
-      # in the Render dashboard after the first deployment.
+      # IMPORTANT: You will add these two keys MANUALLY in the
+      # Render Dashboard after your first deployment.
       - key: RENDER_API_KEY
-        value: "" # Leave this blank for now
+        value: "" # Leave this blank
       - key: BOT_WORKER_SERVICE_ID
-        value: "" # Leave this blank for now
+        value: "" # Leave this blank
 
-  # 2. The Bot Runner (Free Background Worker - runs 24/7)
+  # Service 2: The Bot Runner (uses your Free Background Worker)
+  # This runs your bot 24/7.
   - type: worker
     name: my-bot-runner
     env: python
@@ -23,6 +25,7 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
-      # YOU WILL SET THIS in the Render dashboard to choose a bot
+      # This tells the worker WHICH bot to run from your /bots/ folder.
+      # You change this value in the Render Dashboard to switch bots.
       - key: BOT_TO_RUN
-        value: "client_a" # Default to running client_a's bot
+        value: "client_a" # Change 'client_a' to the name of the folder for the bot you want to run.
