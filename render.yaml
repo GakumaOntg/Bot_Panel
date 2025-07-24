@@ -8,14 +8,12 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
+      # We will set RENDER_API_KEY and BOT_WORKER_SERVICE_ID manually
+      # in the Render dashboard after the first deployment.
       - key: RENDER_API_KEY
-        fromService:
-          type: web # Will be auto-filled
-          name: bot-dashboard
-          property: apiKey
-      # YOU MUST SET THIS MANUALLY in the Render Dashboard after deployment
+        value: "" # Leave this blank for now
       - key: BOT_WORKER_SERVICE_ID
-        value: "" # e.g. srv-xxxxxxxxxxxxxxxxx
+        value: "" # Leave this blank for now
 
   # 2. The Bot Runner (Free Background Worker - runs 24/7)
   - type: worker
@@ -25,6 +23,6 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
-      # YOU MUST SET THIS to choose which bot to run
+      # YOU WILL SET THIS in the Render dashboard to choose a bot
       - key: BOT_TO_RUN
         value: "client_a" # Default to running client_a's bot
