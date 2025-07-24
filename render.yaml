@@ -2,6 +2,7 @@ services:
   # Service 1: The Dashboard (uses your Free Web Service)
   - type: web
     name: bot-dashboard
+    plan: free  # <-- ADD THIS LINE TO FORCE THE FREE PLAN
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python app.py"
@@ -18,12 +19,12 @@ services:
   # Service 2: The Bot Runner (uses your Free Background Worker)
   - type: worker
     name: my-bot-runner
+    plan: free  # <-- ADD THIS LINE TO FORCE THE FREE PLAN
     env: python
     startCommand: "python bot_runner.py"
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
       # This tells the worker WHICH bot to run from your /bots/ folder.
-      # Change this value in the Render Dashboard to switch bots.
       - key: BOT_TO_RUN
         value: "client_a"
