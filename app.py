@@ -3,12 +3,10 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import requests
 
 app = Flask(__name__)
-app.secret_key = 'a-different-secret-key'
+app.secret_key = 'your-very-secret-key-change-this'
 
-# --- CONFIGURATION & USER MANAGEMENT ---
+# --- CONFIG & USER MANAGEMENT ---
 RENDER_API_KEY = os.getenv("RENDER_API_KEY")
-# You need the Service ID of your BACKGROUND WORKER, not the web service.
-# Find this in the URL of your worker's page on Render.
 BOT_WORKER_SERVICE_ID = os.getenv("BOT_WORKER_SERVICE_ID")
 
 USERS = {
@@ -18,31 +16,32 @@ USERS = {
 }
 
 def get_bot_status_and_logs():
-    """Gets the status and logs for the single bot worker."""
+    """Gets the status and logs for the single bot worker from the Render API."""
     if not BOT_WORKER_SERVICE_ID or not RENDER_API_KEY:
-        return "Not Configured", "Admin needs to set environment variables."
+        return "Not Configured", "Admin needs to set environment variables in the dashboard service."
 
     headers = {"Authorization": f"Bearer {RENDER_API_KEY}", "Accept": "application/json"}
     
-    # Get Service Status
     status_url = f"https://api.render.com/v1/services/{BOT_WORKER_SERVICE_ID}"
     status_res = requests.get(status_url, headers=headers)
     status = "Unknown"
     if status_res.status_code == 200:
-        # e.g., 'live', 'suspended', 'deploy_in_progress'
-        status = status_res.json().get('serviceDetails', {}).get('state', 'Unknown')
+        state = status_res.json().get('serviceDetails', {}).get('state', 'Unknown')
+        # Make states more user-friendly
+        if state == 'live': status = 'Running'
+        elif state == 'suspended': status = 'Stopped'
+        else: status = state.replace('_', ' ').title()
 
-    # Get Logs
     logs_url = f"https://api.render.com/v1/services/{BOT_WORKER_SERVICE_ID}/logs?limit=100"
     logs_res = requests.get(logs_url, headers=headers)
     logs = "Could not fetch logs."
     if logs_res.status_code == 200:
-        logs = "\n".join([item['log']['message'] for item in reversed(logs_res.json())])
+        log_items = [item['log']['message'] for item in reversed(logs_res.json())]
+        logs = "\n".join(log_items) if log_items else "No logs found."
 
     return status, logs
 
 # --- FLASK ROUTES ---
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -65,29 +64,24 @@ def logout():
 def index():
     if "username" not in session:
         return redirect(url_for("login"))
-    if session["role"] == "admin":
-        return redirect(url_for("admin_dashboard"))
-    else:
-        return redirect(url_for("client_dashboard"))
+    return redirect(url_for("admin_dashboard")) if session["role"] == "admin" else redirect(url_for("client_dashboard"))
 
 @app.route("/admin")
 def admin_dashboard():
-    if session.get("role") != "admin":
-        return redirect(url_for("login"))
+    if session.get("role") != "admin": return redirect(url_for("login"))
     
     bot_folders = [d for d in os.listdir('bots') if os.path.isdir(os.path.join('bots', d))]
     status, logs = get_bot_status_and_logs()
+    current_bot = os.getenv("BOT_TO_RUN", "Not set in worker environment")
     
-    return render_template("admin_dashboard.html", bot_folders=bot_folders, status=status, logs=logs)
+    return render_template("admin_dashboard.html", bot_folders=bot_folders, status=status, logs=logs, current_bot=current_bot)
 
 @app.route("/client")
 def client_dashboard():
-    if session.get("role") != "client":
-        return redirect(url_for("login"))
+    if session.get("role") != "client": return redirect(url_for("login"))
     
     status, logs = get_bot_status_and_logs()
-    # In this model, the client can only see what the admin is currently running.
-    current_bot = os.getenv("BOT_TO_RUN", "None Selected")
+    current_bot = os.getenv("BOT_TO_RUN", "None")
     
     return render_template("client_dashboard.html", status=status, logs=logs, current_bot=current_bot)
 
