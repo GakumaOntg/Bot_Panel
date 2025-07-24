@@ -1,0 +1,30 @@
+services:
+  # 1. The Dashboard (Free Web Service)
+  - type: web
+    name: bot-dashboard
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: RENDER_API_KEY
+        fromService:
+          type: web # Will be auto-filled
+          name: bot-dashboard
+          property: apiKey
+      # YOU MUST SET THIS MANUALLY in the Render Dashboard after deployment
+      - key: BOT_WORKER_SERVICE_ID
+        value: "" # e.g. srv-xxxxxxxxxxxxxxxxx
+
+  # 2. The Bot Runner (Free Background Worker - runs 24/7)
+  - type: worker
+    name: my-bot-runner
+    env: python
+    startCommand: "python bot_runner.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      # YOU MUST SET THIS to choose which bot to run
+      - key: BOT_TO_RUN
+        value: "client_a" # Default to running client_a's bot
